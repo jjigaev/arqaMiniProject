@@ -2,6 +2,10 @@
 .tools
 .venv
 .env
+.env.*
+.neon
+.agents
+node_modules
 frontend
 **/__pycache__
 **/.pytest_cache

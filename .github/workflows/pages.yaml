@@ -1,0 +1,97 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - frontend/**
+      - .github/workflows/pages.yaml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: read
+    env:
+      API_BASE_URL: ${{ vars.API_BASE_URL }}
+      FLUTTER_VERSION: '3.47.6'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check API address
+        run: |
+          python3 - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+
+          value = os.environ.get('API_BASE_URL', '')
+          url = urlsplit(value)
+          if (not value or value != value.strip() or url.scheme != 'https'
+                  or not url.hostname or url.hostname in ('localhost', '127.0.0.1', '::1')
+                  or url.username or url.password or url.query or url.fragment):
+              raise SystemExit('Set repository variable API_BASE_URL to your public HTTPS API address.')
+          PY
+
+      - name: Install Flutter
+        run: |
+          git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve dependencies
+        working-directory: frontend
+        run: flutter pub get --enforce-lockfile
+
+      - name: Analyze
+        working-directory: frontend
+        run: flutter analyze
+
+      - name: Test
+        working-directory: frontend
+        run: flutter test
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build Flutter Web
+        working-directory: frontend
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: |
+          flutter build web --release --no-wasm-dry-run \
+            --base-href "${PAGES_BASE_PATH%/}/" \
+            --dart-define="API_BASE_URL=$API_BASE_URL" \
+            --dart-define=API_READ_TIMEOUT_SECONDS=90
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: frontend/build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

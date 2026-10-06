@@ -1,0 +1,19 @@
+# PostgreSQL lives in Neon. Enter its URL in Render, never in this file.
+services:
+  - type: web
+    name: arqa-mini-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeployTrigger: 'off'
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /docs
+    envVars:
+      - key: PORT
+        value: '8000'
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: '["https://jjigaev.github.io"]'

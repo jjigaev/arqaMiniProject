@@ -1,4 +1,6 @@
 .env
+.env.local
+.env.neon
 .venv/
 .tools/
 __pycache__/
@@ -15,3 +17,5 @@ frontend/.idea/
 frontend/*.iml
 frontend/android/local.properties
 premium-audit.json
+node_modules/
+.neon
