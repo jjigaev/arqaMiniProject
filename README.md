@@ -59,6 +59,10 @@ subst R: /d
 
 Сопоставление не переносит и не удаляет исходники. В рабочем окружении агента SDK находится в игнорируемой `.tools/flutter`; для обычного запуска достаточно своего Flutter в PATH.
 
+## GitHub Pages
+
+Публикация Flutter Web на GitHub Pages описана в [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Для бесплатного демо предложены Render Free для FastAPI и Neon Free для PostgreSQL; подготовлен `render.yaml`. Первый ответ после простоя может занять около минуты. Конфигурация подготовлена локально, публичный deploy ещё не выполнен.
+
 ## API
 
 ### GET /api/days/{date}
