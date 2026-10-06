@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Три направления · Дневник смен</title>
+  <link rel="stylesheet" href="lab.css">
+  <script src="lab.js" defer></script>
+</head>
+<body>
+  <main>
+    <header class="lab-header"><div><p class="eyebrow">Дневник смен / дизайн-исследование</p><h1>Больше характера.<br>Та же ясность в цифрах.</h1></div><p class="intro">Три направления для ежедневного кабинета водителя. Переключайте дни, откройте форму, сравните экран телефона.</p></header>
+    <div class="concepts" role="group" aria-label="Направления дизайна">
+      <button class="concept" data-theme="solar" aria-pressed="false"><span class="concept-top"><span class="tag">A · Солнечная</span><span class="swatches solar" aria-hidden="true"><i></i><i></i><i></i></span></span><strong>Солнечная смена</strong><span>Жёлтый + кобальт. Собранный журнал, заметная дата, доход в одном блоке.</span></button>
+      <button class="concept" data-theme="lagoon" aria-pressed="true"><span class="concept-top"><span class="tag">B · Выбрано</span><span class="swatches lagoon" aria-hidden="true"><i></i><i></i><i></i></span></span><strong>Лагуна</strong><span>Мята + коралл. Мягкие поверхности, доход рядом со списком, больше воздуха.</span></button>
+      <button class="concept" data-theme="route" aria-pressed="false"><span class="concept-top"><span class="tag">C · Смелее</span><span class="swatches route" aria-hidden="true"><i></i><i></i><i></i></span></span><strong>Маршрут</strong><span>Фиолетовый + лайм. Выразительная хронология, время как ось всего дня.</span></button>
+    </div>
+    <div class="preview-toolbar"><p id="direction">B · Лагуна</p><div class="device" role="group" aria-label="Размер экрана"><button data-device="desktop" aria-pressed="true">Ноутбук</button><button data-device="mobile" aria-pressed="false">Телефон</button></div><a id="standalone" href="preview.html?theme=lagoon" target="_blank" rel="noopener">Открыть отдельно ↗</a></div>
+    <div class="stage" id="stage"><iframe id="preview" src="preview.html?theme=lagoon" title="Интерактивный макет: Лагуна"></iframe></div>
+    <div class="lab-footer"><p><strong>Что работает в макетах:</strong> дни, пустое состояние, форма добавления, проверка полей и обновление сводки.</p><p>Демонстрационные данные из JSON. Добавления временные; перезагрузка или смена направления начинает демку заново. Рабочее приложение не меняется.</p></div>
+  </main>
+</body>
+</html>
