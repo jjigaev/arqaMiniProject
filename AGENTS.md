@@ -2,7 +2,7 @@
 
 ## Scope and collaboration
 - Build the agreed mini-project: FastAPI, PostgreSQL, Flutter Web.
-- Work on `main`. Do not commit, push, publish, or create a PR without explicit user permission. The user will approve commits in separate parts.
+- Work on `main`. Do not commit, publish, or create a PR without explicit user permission. When the user authorizes a commit, also push it to `origin/main` in the same task unless the user explicitly asks to keep it local. Keep commits in separate parts when requested.
 - Keep changes small and reviewable. Do not introduce authentication, queues, additional services, or unrelated features.
 - Before editing, read the relevant source and this file. Preserve the user's changes.
 
