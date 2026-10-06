@@ -17,8 +17,16 @@ abstract interface class DiaryRepository {
 }
 
 class DiaryApi implements DiaryRepository {
-  DiaryApi({http.Client? client, String? baseUrl})
+  DiaryApi({http.Client? client, String? baseUrl, Duration? readTimeout})
     : _client = client ?? http.Client(),
+      _readTimeout =
+          readTimeout ??
+          const Duration(
+            seconds: int.fromEnvironment(
+              'API_READ_TIMEOUT_SECONDS',
+              defaultValue: 15,
+            ),
+          ),
       _baseUrl =
           (baseUrl ??
                   const String.fromEnvironment(
@@ -28,13 +36,16 @@ class DiaryApi implements DiaryRepository {
               .replaceFirst(RegExp(r'/$'), '');
   final http.Client _client;
   final String _baseUrl;
+  final Duration _readTimeout;
 
   Future<http.Response> _request(
     Future<http.Response> Function() send, {
     bool mutation = false,
   }) async {
     try {
-      final response = await send().timeout(const Duration(seconds: 15));
+      final response = await send().timeout(
+        mutation ? const Duration(seconds: 15) : _readTimeout,
+      );
       if (response.statusCode >= 500) {
         throw ApiException(
           mutation

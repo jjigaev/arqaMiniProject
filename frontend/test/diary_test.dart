@@ -130,6 +130,74 @@ void main() {
     );
     expect((await api.createTrip(payload)).id, 'fixed-id');
   });
+  testWidgets('cold API can answer after the normal timeout', (tester) async {
+    final response = Completer<http.Response>();
+    final client = MockClient((_) => response.future);
+    addTearDown(client.close);
+    final api = DiaryApi(
+      client: client,
+      readTimeout: const Duration(seconds: 90),
+    );
+    var completed = false;
+    final request = api.getDay(DateTime.utc(2026, 10, 1)).then((day) {
+      completed = true;
+      return day;
+    });
+    await tester.pump(const Duration(seconds: 60));
+    expect(completed, false);
+    response.complete(
+      http.Response(
+        jsonEncode({
+          'date': '2026-10-01',
+          'timezone': 'Asia/Qyzylorda',
+          'currency': 'KZT',
+          'summary': {
+            'trip_count': 0,
+            'revenue': '0.00',
+            'commission': '0.00',
+            'net': '0.00',
+            'cash': '0.00',
+            'card': '0.00',
+          },
+          'trips': [],
+        }),
+        200,
+      ),
+    );
+    await tester.pump();
+    expect((await request).summary.count, 0);
+  });
+  testWidgets(
+    'read timeout is bounded and POST stays uncertain at 15 seconds',
+    (tester) async {
+      final client = MockClient((_) => Completer<http.Response>().future);
+      addTearDown(client.close);
+      final api = DiaryApi(
+        client: client,
+        readTimeout: const Duration(seconds: 90),
+      );
+      final read = expectLater(
+        api.getDay(DateTime.utc(2026, 10, 1)),
+        throwsA(
+          isA<ApiException>().having((e) => e.uncertain, 'uncertain', false),
+        ),
+      );
+      var writeFailed = false;
+      final write = expectLater(
+        api
+            .createTrip({'id': 'pending'})
+            .whenComplete(() => writeFailed = true),
+        throwsA(
+          isA<ApiException>().having((e) => e.uncertain, 'uncertain', true),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 16));
+      await write;
+      expect(writeFailed, true);
+      await tester.pump(const Duration(seconds: 75));
+      await read;
+    },
+  );
   testWidgets('day navigation and empty state are visible', (tester) async {
     final controller = DiaryController(FakeRepository());
     await tester.pumpWidget(DiaryApp(controller: controller));
