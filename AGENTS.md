@@ -25,5 +25,5 @@
 - Run `ruff check`, `ruff format --check`, `flutter analyze`, `flutter test`, and `flutter build web` as applicable.
 - Verify loading, empty, error/retry, stale date requests, successful creation, and narrow-screen behavior.
 - Keep `README.md`, `DESIGN.md`, API examples, migrations, and tests consistent with the implementation.
-- Record actual AI mistakes and corrections in `docs/AI_NOTES.md`. Distinguish agent corrections from human decisions; do not invent manual work or successful checks.
+- Keep documentation focused on application behavior, architecture, setup, and verification. Do not create AI notes, agent activity journals, or sections describing AI usage; the user explicitly does not want them.
 - Never commit secrets, local environments, SDKs, build outputs, or database files.

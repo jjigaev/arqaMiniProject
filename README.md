@@ -2,13 +2,15 @@
 
 Мини-проект на **FastAPI + PostgreSQL + Flutter Web**. Один водитель, выбор дня, список поездок, точная сводка и добавление поездки без дублей.
 
-[Основной экран](docs/screenshots/day-desktop.jpg) · [Форма](docs/screenshots/add-trip.jpg) · [Узкий экран](docs/screenshots/day-mobile.jpg) · [Результаты проверки](docs/VERIFICATION.md)
+[Демо](https://jjigaev.github.io/arqaMiniProject/) · [Swagger UI](https://arqaminiproject.onrender.com/docs) · [Архитектура](docs/ARCHITECTURE.md)
+
+[Основной экран](docs/screenshots/day-desktop.jpg) · [Форма](docs/screenshots/add-trip.jpg) · [Узкий экран](docs/screenshots/day-mobile.jpg)
 
 ## Возможности
 
 - API возвращает поездки и сводку за выбранный день одним запросом.
 - Клиент показывает число поездок, выручку, комиссию, «на руки», наличные/карту; позволяет переключать дни и добавлять поездки.
-- Дизайн B «Лагуна»: мятная сводка слева, журнал справа с доходом каждой поездки. На телефоне блоки перестраиваются, добавление закреплено снизу.
+- Мятная сводка слева, журнал справа с доходом каждой поездки. На телефоне блоки перестраиваются, добавление закреплено снизу.
 - В форме дата выбирается из календаря (`дд/мм/гггг`), время отдельно (`ЧЧ:мм`, 24 часа). Сумма и комиссия допускают только цифры и один десятичный разделитель, до двух дробных знаков.
 - Повторный POST с тем же ID и данными не создаёт запись, включая одновременную отправку. Изменённые данные с тем же ID возвращают 409.
 - При неопределённом результате POST клиент сохраняет ID и данные для безопасного повтора.
@@ -57,11 +59,34 @@ Set-Location C:\
 subst R: /d
 ```
 
-Сопоставление не переносит и не удаляет исходники. В рабочем окружении агента SDK находится в игнорируемой `.tools/flutter`; для обычного запуска достаточно своего Flutter в PATH.
+Сопоставление не переносит и не удаляет исходники. Для запуска достаточно Flutter SDK в PATH.
 
-## GitHub Pages
+## Публичное демо и хостинг
 
-Публикация Flutter Web на GitHub Pages описана в [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Для бесплатного демо предложены Render Free для FastAPI и Neon Free для PostgreSQL; подготовлен `render.yaml`. Первый ответ после простоя может занять около минуты. Конфигурация подготовлена локально, публичный deploy ещё не выполнен.
+| Сервис | Роль | Настройка в проекте |
+|---|---|---|
+| [GitHub Pages](https://jjigaev.github.io/arqaMiniProject/) | Отдаёт собранный Flutter Web; приложение работает в браузере | [.github/workflows/pages.yaml](.github/workflows/pages.yaml) |
+| [Render](https://arqaminiproject.onrender.com/docs) | Запускает FastAPI в Docker | [backend/Dockerfile](backend/Dockerfile), [render.yaml](render.yaml) |
+| Neon | Хранит поездки в PostgreSQL | [backend/app/config.py](backend/app/config.py), [backend/app/database.py](backend/app/database.py) |
+
+Браузер обращается к Render по HTTPS, а FastAPI подключается к Neon по строке `DATABASE_URL`. GitHub Pages не обращается к базе и не выполняет Python. Подробный путь запросов и соответствующий код: [архитектура](docs/ARCHITECTURE.md).
+
+Настройки опубликованного приложения:
+
+| Где задать | Переменная | Значение |
+|---|---|---|
+| GitHub → Settings → Secrets and variables → Actions → Variables | `API_BASE_URL` | `https://arqaminiproject.onrender.com` |
+| Render → Environment | `DATABASE_URL` | Прямая строка подключения Neon с префиксом `postgresql+psycopg://` и TLS-параметром `sslmode=require` |
+| Render → Environment | `CORS_ORIGINS` | `["https://jjigaev.github.io"]` |
+| Render → Environment | `PORT` | `8000`, согласно Dockerfile |
+
+Строку Neon взять в Console → Connect, выбрав прямое подключение без `-pooler` в hostname. Заменить только начальный `postgresql://` на `postgresql+psycopg://`, сохранив пароль, базу и TLS-параметры. Прямое подключение используется и API, и Alembic. `DATABASE_URL` остаётся в секретном окружении Render; в GitHub и клиентскую сборку передаётся только публичный адрес API.
+
+Для Pages выбран Source → GitHub Actions. Workflow проверяет адрес API, запускает `flutter analyze` и `flutter test`, собирает клиент с базовым путём Pages и публикует результат. Он запускается при изменении `frontend/` или самого workflow в `main`; после изменения `API_BASE_URL` нужно вручную выполнить Actions → GitHub Pages → Run workflow, поскольку адрес встраивается при сборке.
+
+Render собирает Dockerfile из корня репозитория: Root Directory пустой, Dockerfile Path — `./backend/Dockerfile`, Docker Build Context — `.`. При старте контейнер применяет миграции, импортирует JSON без дублей и запускает Uvicorn. `render.yaml` задаёт Free-план, Frankfurt и ручное обновление сервиса; при ручном создании Web Service эти параметры задаются в панели Render. Для следующего релиза API используется Manual Deploy → Deploy latest commit. Health check `/docs` проверяет HTTP-сервер; подключение к БД проверяется запросом `/api/days/2026-10-01`. Корневой `/` у API возвращает 404 — интерфейс размещён на Pages.
+
+После простоя бесплатный API может запускаться с задержкой. Pages-сборка ждёт GET до 90 секунд через `API_READ_TIMEOUT_SECONDS`; локальное значение — 15 секунд. POST ждёт 15 секунд и при неопределённом результате предлагает безопасный повтор с прежними ID и данными.
 
 ## API
 
@@ -150,7 +175,7 @@ flutter test
 flutter build web --dart-define=API_BASE_URL=http://localhost:8000
 ```
 
-Проверяются деньги, timezone, поздний ответ, сохранение ID/payload при повторе, HTTP 200 при повторе, навигация, числовой ввод, календарь и точное время, поездка через полночь и узкий экран. [Дизайн-референсы](docs/DESIGN_REFERENCES.md) и [выбранная концепция B](docs/DESIGN_BRAINSTORM.md).
+Проверяются деньги, timezone, поздний ответ, сохранение ID/payload при повторе, HTTP 200 при повторе, ожидание холодного API, навигация, числовой ввод, календарь и точное время, поездка через полночь и узкий экран. Палитра и правила интерфейса описаны в [DESIGN.md](DESIGN.md).
 
 Локальная разработка backend на Windows:
 
@@ -183,13 +208,12 @@ frontend/lib/         модели, API, контроллер, экран и ф�
 frontend/test/        тесты клиента
 data/trips.json       девять поездок за три дня
 scripts/              проверка дизайн-токенов
-AGENTS.md             правила работы ИИ
 DESIGN.md             решения по интерфейсу
+docs/ARCHITECTURE.md  связь хостингов, конфигурация и путь запросов в коде
+docs/screenshots/     экран приложения на разных размерах
+.github/workflows/    сборка и публикация Flutter Web
+render.yaml          конфигурация API на Render
+compose.yaml         локальные API, PostgreSQL и тестовое окружение
 ```
 
 Python-зависимости зафиксированы в `backend/requirements.lock`, Dart — в `frontend/pubspec.lock`.
-
-## Использование ИИ
-
-ИИ помог составить план, реализовать приложение, написать тесты и документацию. Пользователь выбрал стек, платформу, форму, дизайн B «Лагуна», работу на main и правила коммитов.
-Ручные исправления пользователя добавляются по факту его проверки. Не приписываем человеку исправления агента.
