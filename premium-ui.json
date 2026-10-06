@@ -1,0 +1,18 @@
+{
+  "profile": "product-admin",
+  "sourceRoots": ["frontend/lib", "frontend/web"],
+  "locale": "ru",
+  "canonicalMap": "DESIGN.md",
+  "requiredCapabilities": ["Date", "Form", "Scrollbar", "Toast", "CRUD"],
+  "ownership": {"Date": "authored", "Select/Listbox": "authored"},
+  "requiredCommands": ["unit", "analyze", "build"],
+  "commands": {
+    "unit": "cd frontend && flutter test",
+    "analyze": "cd frontend && flutter analyze",
+    "build": "cd frontend && flutter build web"
+  },
+  "evidence": {
+    "crudFullFlow": "frontend/test/diary_test.dart",
+    "failurePaths": "frontend/test/diary_test.dart"
+  }
+}
