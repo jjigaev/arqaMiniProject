@@ -1,0 +1,17 @@
+.env
+.venv/
+.tools/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+frontend/.dart_tool/
+frontend/.flutter-plugins*
+frontend/build/
+frontend/.idea/
+frontend/*.iml
+frontend/android/local.properties
+premium-audit.json
